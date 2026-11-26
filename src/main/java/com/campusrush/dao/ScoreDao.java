@@ -36,11 +36,20 @@ public final class ScoreDao {
 
     public List<ScoreEntry> findLeaderboard(String searchText) {
         boolean filtered = searchText != null && !searchText.isBlank();
-        String sql = "SELECT s.score_id, s.player_id, p.display_name, "
-                + "s.score_value, s.distance_value, s.achieved_at "
-                + "FROM scores s JOIN players p ON p.player_id = s.player_id "
+        String sql = "SELECT score_id, player_id, display_name, "
+                + "score_value, distance_value, achieved_at "
+                + "FROM ("
+                + "SELECT s.score_id, s.player_id, p.display_name, "
+                + "s.score_value, s.distance_value, s.achieved_at, "
+                + "ROW_NUMBER() OVER (PARTITION BY s.player_id "
+                + "ORDER BY s.score_value DESC, s.achieved_at ASC, "
+                + "s.score_id ASC) AS player_rank "
+                + "FROM scores s JOIN players p "
+                + "ON p.player_id = s.player_id "
                 + (filtered ? "WHERE LOWER(p.display_name) LIKE ? " : "")
-                + "ORDER BY s.score_value DESC, s.achieved_at ASC";
+                + ") best_scores "
+                + "WHERE player_rank = 1 "
+                + "ORDER BY score_value DESC, achieved_at ASC, score_id ASC";
         List<ScoreEntry> scores = new ArrayList<>();
 
         try (Connection connection = connectionFactory.open();
