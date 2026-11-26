@@ -220,7 +220,7 @@ public final class GamePanel extends JPanel {
                     RenderingHints.VALUE_ANTIALIAS_OFF);
 
             GameSnapshot snapshot = engine.snapshot();
-            drawBackground(g, snapshot);
+            drawBackground(g);
             drawObstacles(g, snapshot);
             drawPlayer(g, snapshot);
             drawHud(g, snapshot);
@@ -233,7 +233,7 @@ public final class GamePanel extends JPanel {
             g.dispose();
         }
 
-        private void drawBackground(Graphics2D g, GameSnapshot snapshot) {
+        private void drawBackground(Graphics2D g) {
             g.setPaint(new GradientPaint(0, 0, Theme.SKY,
                     0, GameEngine.WORLD_HEIGHT, Theme.SKY_LIGHT));
             g.fillRect(0, 0, GameEngine.WORLD_WIDTH,
@@ -250,10 +250,10 @@ public final class GamePanel extends JPanel {
             g.fillRect(0, 300, GameEngine.WORLD_WIDTH, 105);
             drawCampusBuildings(g);
             drawTrees(g);
-            drawTrack(g, snapshot);
+            drawTrack(g);
         }
 
-        private void drawTrack(Graphics2D g, GameSnapshot snapshot) {
+        private void drawTrack(Graphics2D g) {
             g.setColor(Theme.TRACK);
             g.fillRect(0, GameEngine.GROUND_Y, GameEngine.WORLD_WIDTH,
                     GameEngine.WORLD_HEIGHT - GameEngine.GROUND_Y);
@@ -263,19 +263,17 @@ public final class GamePanel extends JPanel {
                 g.fillRect(0, y, GameEngine.WORLD_WIDTH, 4);
             }
 
-            int roadShift = -(snapshot.distance() % 112);
-            for (int x = roadShift; x < GameEngine.WORLD_WIDTH; x += 112) {
+            for (int x = 24; x < GameEngine.WORLD_WIDTH; x += 112) {
                 g.setColor(Theme.SUN);
                 g.fillRect(x, GameEngine.GROUND_Y + 28, 54, 6);
                 g.setColor(Theme.TRACK_LINE);
                 g.fillRect(x + 72, GameEngine.GROUND_Y + 70, 28, 5);
             }
 
-            int grassShift = -(snapshot.distance() % 70);
             g.setColor(Theme.GRASS);
             g.fillRect(0, GameEngine.WORLD_HEIGHT - 14,
                     GameEngine.WORLD_WIDTH, 14);
-            for (int x = grassShift; x < GameEngine.WORLD_WIDTH; x += 70) {
+            for (int x = 12; x < GameEngine.WORLD_WIDTH; x += 70) {
                 g.setColor(Theme.GRASS_DARK);
                 g.fillRect(x, GameEngine.WORLD_HEIGHT - 18, 18, 4);
                 g.fillRect(x + 24, GameEngine.WORLD_HEIGHT - 11, 12, 3);
@@ -312,14 +310,13 @@ public final class GamePanel extends JPanel {
         }
 
         private void drawObstacles(Graphics2D g, GameSnapshot snapshot) {
-            int runFrame = (snapshot.distance() / 7) % 4;
             for (ObstacleView obstacle : snapshot.obstacles()) {
                 int x = (int) obstacle.x();
                 int y = (int) obstacle.y();
                 switch (obstacle.type()) {
                     case DESK -> drawDesk(g, x, y, obstacle.width(), obstacle.height());
                     case CHAIR -> drawChair(g, x, y, obstacle.width(), obstacle.height());
-                    case STUDENT -> drawStudent(g, x, y, obstacle.width(), obstacle.height(), runFrame);
+                    case STUDENT -> drawStudent(g, x, y, obstacle.width(), obstacle.height());
                     case EQUATION -> drawEquation(g, x, y, obstacle.width(), obstacle.height());
                     case BOOK -> drawBook(g, x, y, obstacle.width(), obstacle.height());
                 }
@@ -354,7 +351,7 @@ public final class GamePanel extends JPanel {
         }
 
         private void drawStudent(Graphics2D g, int x, int y, int width,
-                                 int height, int runFrame) {
+                                 int height) {
             g.setColor(Theme.INK);
             g.fillRect(x + 11, y, 17, 17);
             g.fillRect(x + 7, y + 17, 25, 26);
@@ -366,13 +363,8 @@ public final class GamePanel extends JPanel {
             g.fillRect(x + 9, y + 40, 8, height - 40);
             g.fillRect(x + 23, y + 40, 8, height - 40);
             g.setColor(Theme.CREAM);
-            if (runFrame % 2 == 0) {
-                g.fillRect(x + 1, y + 23, 9, 6);
-                g.fillRect(x + 28, y + 28, 12, 6);
-            } else {
-                g.fillRect(x + 1, y + 29, 12, 6);
-                g.fillRect(x + 28, y + 22, 9, 6);
-            }
+            g.fillRect(x + 1, y + 23, 9, 6);
+            g.fillRect(x + 28, y + 28, 12, 6);
         }
 
         private void drawEquation(Graphics2D g, int x, int y, int width, int height) {
@@ -408,7 +400,6 @@ public final class GamePanel extends JPanel {
             int x = 120;
             int y = (int) snapshot.playerY();
             int height = snapshot.ducking() ? 36 : 60;
-            int runFrame = (snapshot.distance() / 7) % 4;
             g.setColor(new Color(20, 33, 48, 70));
             g.fillRect(x - 4, GameEngine.GROUND_Y + 3, 48, 4);
             g.setColor(new Color(255, 205, 153));
@@ -422,23 +413,17 @@ public final class GamePanel extends JPanel {
                 g.fillRect(x + 2, y + 25, 21, 8);
                 g.fillRect(x + 27, y + 25, 20, 8);
             } else {
-                if (runFrame % 2 == 0) {
-                    g.fillRect(x + 7, y + 43, 10, height - 43);
-                    g.fillRect(x + 28, y + 43, 10, 9);
-                    g.fillRect(x + 34, y + 49, 14, 8);
-                } else {
-                    g.fillRect(x + 10, y + 43, 10, 9);
-                    g.fillRect(x + 27, y + 43, 10, height - 43);
-                    g.fillRect(x + 1, y + 49, 14, 8);
-                }
+                g.fillRect(x + 7, y + 43, 10, height - 43);
+                g.fillRect(x + 28, y + 43, 10, 9);
+                g.fillRect(x + 34, y + 49, 14, 8);
             }
             g.setColor(Theme.CREAM);
-            if (snapshot.ducking() || runFrame % 2 == 0) {
-                g.fillRect(x + 1, y + 24, 12, 8);
-                g.fillRect(x + 34, y + 28, 16, 8);
-            } else {
+            if (snapshot.ducking()) {
                 g.fillRect(x + 1, y + 29, 16, 8);
                 g.fillRect(x + 34, y + 23, 12, 8);
+            } else {
+                g.fillRect(x + 1, y + 24, 12, 8);
+                g.fillRect(x + 34, y + 28, 16, 8);
             }
             g.setColor(Theme.INK);
             g.fillRect(x + 27, y + 7, 4, 4);
